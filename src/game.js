@@ -33,7 +33,8 @@ var startGame = function() {
   if(ua.match(/android/)) {
     Game.setBoard(0,new Starfield(50,0.6,100,true));
   } else {
-    Game.setBoard(0,new Starfield(20,0.4,100,true));
+    Game.setBoard(0,new 
+      (20,0.4,100,true));
     Game.setBoard(1,new Starfield(50,0.6,100));
     Game.setBoard(2,new Starfield(100,1.0,50));
   }
@@ -59,9 +60,8 @@ var level1 = [
 var playGame = function() {
   var board = new GameBoard();
   board.add(new Background());
-  //board.add(new Level(level1,winGame));
-  Game.setBoard(3,board);
-  //Game.setBoard(5,new GamePoints(0));
+  Game.setBoard(0,board);
+ // Game.setBoard(0,new Background());
 };
 
 var winGame = function() {
@@ -77,15 +77,15 @@ var loseGame = function() {
 };
 
 var Background = function() {
-  this.setup('background', {  });
-  this.x = 0;
-  this.y = 0;
 
-  this.step = function(dt) {
-  };
+  this.setup('background', {}); 
+  this.x =0;
+  this.y=0;
+
+  this.step= function(){};
 };
 
-PlayerShip.prototype = new Sprite();
+Background.prototype = new Sprite();
 
 var Starfield = function(speed,opacity,numStars,clear) {
 
