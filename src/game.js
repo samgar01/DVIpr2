@@ -33,8 +33,7 @@ var startGame = function() {
   if(ua.match(/android/)) {
     Game.setBoard(0,new Starfield(50,0.6,100,true));
   } else {
-    Game.setBoard(0,new 
-      (20,0.4,100,true));
+    Game.setBoard(0,new Starfield(20,0.4,100,true));
     Game.setBoard(1,new Starfield(50,0.6,100));
     Game.setBoard(2,new Starfield(100,1.0,50));
   }
@@ -59,8 +58,10 @@ var level1 = [
 
 var playGame = function() {
   var board = new GameBoard();
-  board.add(new Background());
-  Game.setBoard(0,board);
+  board.add(new Player());
+
+  Game.setBoard(0,new Background());
+  Game.setBoard(1,board);
  // Game.setBoard(0,new Background());
 };
 
@@ -78,7 +79,7 @@ var loseGame = function() {
 
 var Background = function() {
 
-  this.setup('background', {}); 
+  this.setup('background', {});
   this.x =0;
   this.y=0;
 
@@ -148,45 +149,62 @@ var Starfield = function(speed,opacity,numStars,clear) {
   };
 };
 
-var PlayerShip = function() {
-  this.setup('ship', { vx: 0, reloadTime: 0.25, maxVel: 200 });
+var Player = function() {
+  this.setup('bartender', { currPos: 1, reloadTime: 0.10, serveTime: 0.25 });
 
+  this.x = 357;
+  this.y = 185;
   this.reload = this.reloadTime;
-  this.x = Game.width/2 - this.w / 2;
-  this.y = Game.height - Game.playerOffset - this.h;
+  this.serve = this.serveTime;
 
   this.step = function(dt) {
-    if(Game.keys['left']) { this.vx = -this.maxVel; }
-    else if(Game.keys['right']) { this.vx = this.maxVel; }
-    else { this.vx = 0; }
-
-    this.x += this.vx * dt;
-
-    if(this.x < 0) { this.x = 0; }
-    else if(this.x > Game.width - this.w) {
-      this.x = Game.width - this.w;
-    }
-
+    var positions = [{x:325, y:90},{x:357, y:185},{x:389, y:281},{x:421, y:377}];
     this.reload-=dt;
-    if(Game.keys['fire'] && this.reload < 0) {
-      Game.keys['fire'] = false;
+    if (Game.keys['down'] && this.reload < 0) {
+      this.currPos = (this.currPos + 1)%4;
+      var nextPos = positions[this.currPos];
+      this.x = nextPos.x;
+      this.y = nextPos.y;
       this.reload = this.reloadTime;
+    } else if (Game.keys['up'] && this.reload < 0) {
+      if (this.currPos == 0)
+        this.currPos = 3;
+      else
+        this.currPos = this.currPos - 1;
 
-      this.board.add(new PlayerMissile(this.x,this.y+this.h/2));
-      this.board.add(new PlayerMissile(this.x+this.w,this.y+this.h/2));
+      var nextPos = positions[this.currPos];
+      this.x = nextPos.x;
+      this.y = nextPos.y;
+      this.reload = this.reloadTime;
     }
-  };
-};
-
-PlayerShip.prototype = new Sprite();
-PlayerShip.prototype.type = OBJECT_PLAYER;
-
-PlayerShip.prototype.hit = function(damage) {
-  if(this.board.remove(this)) {
-    loseGame();
+    this.serve-=dt;
+    if (Game.keys['serve'] && this.serve < 0) {
+      this.board.add(new Beer(this.x,this.y));
+      this.serve = this.serveTime;
+    }
   }
 };
+Player.prototype = new Sprite();
+//Player.prototype.type = OBJECT_PLAYER;
 
+var Beer = function(x,y) {
+  this.setup('beer_full', {vx: -100});
+  this.x = x-this.w;
+  this.y = y;
+};
+Beer.prototype = new Sprite();
+//Beer.prototype.type = OBJECT_PLAYER_PROJECTILE;
+
+Beer.prototype.step = function(dt)  {
+  this.x += this.vx * dt;
+  /*var collision = this.board.collide(this,OBJECT_ENEMY);
+  if(collision) {
+    collision.hit(this.damage);
+    this.board.remove(this);
+  } else if(this.y < -this.h) {
+      this.board.remove(this);
+  }*/
+};
 
 var PlayerMissile = function(x,y) {
   this.setup('missile',{ vy: -700, damage: 10 });
