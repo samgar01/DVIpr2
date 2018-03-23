@@ -53,7 +53,7 @@ var level1 = [
 var playGame = function() {
   var board = new GameBoard();
   board.add(new Player());
-  board.add(new Client(125,80));
+  //board.add(new Client(125,80));
   board.add(new DeadZone(124,64,OBJECT_BEER_FULL));
   board.add(new DeadZone(95,162,OBJECT_BEER_FULL));
   board.add(new DeadZone(62,256,OBJECT_BEER_FULL));
@@ -66,6 +66,7 @@ var playGame = function() {
   board.add(new DeadZone(383,177,OBJECT_BEER_EMPTY));
   board.add(new DeadZone(416,274,OBJECT_BEER_EMPTY));
   board.add(new DeadZone(447,369,OBJECT_BEER_EMPTY));
+  board.add(new Spawner(0, 10, '', 1000, 500));
   //board.add(new Level(level1,winGame));
 
 
@@ -205,11 +206,65 @@ DeadZone.prototype.step = function(dt)  {
   }
 };
 DeadZone.prototype.draw = function(ctx) {
-  ctx.strokeRect(this.x, this.y, this.w, this.h);//124 64
+  ctx.strokeRect(this.x, this.y, this.w, this.h);
 };
 
+var Spawner = function(bar, numClient, tipo, frec, delay){
+	this.w=0;
+  this.h=0;
+	this.bar = bar;
+	this.numClient = numClient;
+	this.tipo = tipo;
+	this.frec = frec;
+	this.delay = delay;
+	this.t = 0;
+	this.currNumClient = 0;
+	this.firstClient = false;
+	switch (this.bar) {
+    case 0:
+        this.x = enemies.client_0.x;
+        this.y = enemies.client_0.y;
+        break;
+    case 1:
+        this.x = enemies.client_1.x;
+        this.y = enemies.client_1.y;
+        break;
+    case 2:
+        this.x = enemies.client_2.x;
+        this.y = enemies.client_2.y;
+        break;
+    case 3:
+        this.x = enemies.client_3.x;
+        this.y = enemies.client_3.y;
+        break;
+	}
+};
+Spawner.prototype = new Sprite();
+Spawner.prototype.step = function(dt)  {
+	if(this.numClient > this.currNumClient){
+	  if (this.t == 0){
+	  	this.board.add(new Client(this.x,this.y));
+	  	this.currNumClient++;
+	  }
+	  this.t += dt * 1000;
+	  if(this.t >= this.delay && !this.firstClient){
+	  	this.board.add(new Client(this.x,this.y));
+	  	this.firstClient = true;
+	  	this.currNumClient++;
+	  }
+	  if(this.firstClient && (this.t-(this.delay+(this.frec*(this.currNumClient-2)))) > this.frec){
+	  	this.board.add(new Client(this.x,this.y));
+	  	this.currNumClient++;
+	  }
+	}
+};
 
-
+if((this.t-this.delay)%this.frec == 0){
+	  		this.board.add(new Client(this.x,this.y));
+	  		this.currNumClient++;
+	  	}
+Spawner.prototype.draw = function(ctx) {
+};
 
 
 window.addEventListener("load", function() {
