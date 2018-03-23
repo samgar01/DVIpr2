@@ -7,11 +7,11 @@ var sprites = {
  foreground: { sx: 0, sy: 0, w: 511, h: 480, frames: 1 }
 };
 
-var enemies = { 
+var enemies = {
   client_0:   { x: 125,   y: 80, sprite: 'client'},
-  client_1:   { x: 0,   y: -50, sprite: 'client'},
-  client_2:   { x: 0,   y: -50, sprite: 'client'},
-  client_3:   { x: 0,   y: -50, sprite: 'client'}
+  client_1:   { x: 95,   y: 178, sprite: 'client'},
+  client_2:   { x: 62,   y: 272, sprite: 'client'},
+  client_3:   { x: 30,   y: 369, sprite: 'client'}
 };
 
 var OBJECT_BARTENDER = 1,
@@ -66,7 +66,11 @@ var playGame = function() {
   board.add(new DeadZone(383,177,OBJECT_BEER_EMPTY));
   board.add(new DeadZone(416,274,OBJECT_BEER_EMPTY));
   board.add(new DeadZone(447,369,OBJECT_BEER_EMPTY));
-  board.add(new Spawner(0, 10, '', 1000, 500));
+  board.add(new Spawner(0, 2, '', 1000, 5000));
+  board.add(new Spawner(1, 3, '', 3000, 1500));
+  board.add(new Spawner(2, 4, '', 6000, 800));
+  board.add(new Spawner(3, 5, '', 3000, 1000));
+  //               bar|clients|type|frec|delay
   //board.add(new Level(level1,winGame));
 
 
@@ -156,7 +160,7 @@ Beer.prototype.step = function(dt)  {
 
 
 var Client = function(x,y) {
-  this.setup('client', {vx: 50});
+  this.setup('client', {vx: 25});
   this.x = x;
   this.y = y;
 };
@@ -219,7 +223,7 @@ var Spawner = function(bar, numClient, tipo, frec, delay){
 	this.delay = delay;
 	this.t = 0;
 	this.currNumClient = 0;
-	this.firstClient = false;
+	this.firstDelayClient = false;
 	switch (this.bar) {
     case 0:
         this.x = enemies.client_0.x;
@@ -247,22 +251,18 @@ Spawner.prototype.step = function(dt)  {
 	  	this.currNumClient++;
 	  }
 	  this.t += dt * 1000;
-	  if(this.t >= this.delay && !this.firstClient){
+	  if(this.t >= this.delay && !this.firstDelayClient){
 	  	this.board.add(new Client(this.x,this.y));
-	  	this.firstClient = true;
+	  	this.firstDelayClient = true;
 	  	this.currNumClient++;
 	  }
-	  if(this.firstClient && (this.t-(this.delay+(this.frec*(this.currNumClient-2)))) > this.frec){
+	  if(this.firstDelayClient && (this.t-(this.delay+(this.frec*(this.currNumClient-2)))) > this.frec){
 	  	this.board.add(new Client(this.x,this.y));
 	  	this.currNumClient++;
 	  }
 	}
 };
 
-if((this.t-this.delay)%this.frec == 0){
-	  		this.board.add(new Client(this.x,this.y));
-	  		this.currNumClient++;
-	  	}
 Spawner.prototype.draw = function(ctx) {
 };
 
