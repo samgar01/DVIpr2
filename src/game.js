@@ -23,17 +23,33 @@ var OBJECT_BARTENDER = 1,
 var startGame = function() {
   var ua = navigator.userAgent.toLowerCase();
 
-  // Only 1 row of stars
-  if(ua.match(/android/)) {
-    Game.setBoard(0,new Starfield(50,0.6,100,true));
-  } else {
-    Game.setBoard(0,new Starfield(20,0.4,100,true));
-    Game.setBoard(1,new Starfield(50,0.6,100));
-    Game.setBoard(2,new Starfield(100,1.0,50));
-  }
-  Game.setBoard(3,new TitleScreen("Alien Invasion",
-                                  "Press fire to start playing",
+  var boardLayerBackground = new GameBoard(false);
+  boardLayerBackground.add(new Background());
+
+  Game.setBoard(3,boardLayerBackground);
+
+  var boardLayerWin = new GameBoard(false);
+  boardLayerWin.add(new TitleScreen("You win!",
+                                  "Press serve to play again",
                                   playGame));
+  Game.setBoard(0,boardLayerWin);
+
+  var boardLayerLose = new GameBoard(false);
+  boardLayerLose.add(new TitleScreen("You lose!",
+                                  "Press serve to play again",
+                                  playGame));
+  Game.setBoard(1,boardLayerLose);
+
+  var boardLayerStart = new GameBoard(true);
+  boardLayerStart.add(new TitleScreen("TAPPER-SD",
+                                  "Please play (press space bar)",
+                                  playGame));
+  Game.setBoard(2,boardLayerStart);
+
+  GameManager.addBoard(0,boardLayerWin);
+  GameManager.addBoard(1,boardLayerLose);
+  GameManager.addBoard(2,boardLayerStart);
+  GameManager.addBoard(3,boardLayerBackground);
 };
 
 var level1 = [
@@ -51,45 +67,66 @@ var level1 = [
 
 
 var playGame = function() {
-  var board = new GameBoard();
-  board.add(new Player());
-  //board.add(new Client(125,80));
-  board.add(new DeadZone(124,64,OBJECT_BEER_FULL));
-  board.add(new DeadZone(95,162,OBJECT_BEER_FULL));
-  board.add(new DeadZone(62,256,OBJECT_BEER_FULL));
-  board.add(new DeadZone(30,353,OBJECT_BEER_FULL));
-  board.add(new DeadZone(325,64,OBJECT_CLIENT));
-  board.add(new DeadZone(360,177,OBJECT_CLIENT));
-  board.add(new DeadZone(393,274,OBJECT_CLIENT));
-  board.add(new DeadZone(424,369,OBJECT_CLIENT));
-  board.add(new DeadZone(348,64,OBJECT_BEER_EMPTY));
-  board.add(new DeadZone(383,177,OBJECT_BEER_EMPTY));
-  board.add(new DeadZone(416,274,OBJECT_BEER_EMPTY));
-  board.add(new DeadZone(447,369,OBJECT_BEER_EMPTY));
-  board.add(new Spawner(0, 2, '', 1000, 5000));
-  board.add(new Spawner(1, 3, '', 3000, 1500));
-  board.add(new Spawner(2, 4, '', 6000, 800));
-  board.add(new Spawner(3, 5, '', 3000, 1000));
+  GameManager.reset();
+  var boardLayerPlayer = new GameBoard(true);
+  boardLayerPlayer.add(new Player());
+  //boardLayerPlayer.add(new Client(125,80));
+  boardLayerPlayer.add(new DeadZone(124,64,OBJECT_BEER_FULL));
+  boardLayerPlayer.add(new DeadZone(95,162,OBJECT_BEER_FULL));
+  boardLayerPlayer.add(new DeadZone(62,256,OBJECT_BEER_FULL));
+  boardLayerPlayer.add(new DeadZone(30,353,OBJECT_BEER_FULL));
+  boardLayerPlayer.add(new DeadZone(325,64,OBJECT_CLIENT));
+  boardLayerPlayer.add(new DeadZone(360,177,OBJECT_CLIENT));
+  boardLayerPlayer.add(new DeadZone(393,274,OBJECT_CLIENT));
+  boardLayerPlayer.add(new DeadZone(424,369,OBJECT_CLIENT));
+  boardLayerPlayer.add(new DeadZone(348,64,OBJECT_BEER_EMPTY));
+  boardLayerPlayer.add(new DeadZone(383,177,OBJECT_BEER_EMPTY));
+  boardLayerPlayer.add(new DeadZone(416,274,OBJECT_BEER_EMPTY));
+  boardLayerPlayer.add(new DeadZone(447,369,OBJECT_BEER_EMPTY));
+  boardLayerPlayer.add(new Spawner(0, 0, '', 1000, 5000));
+  boardLayerPlayer.add(new Spawner(1, 1, '', 3000, 1500));
+  boardLayerPlayer.add(new Spawner(2, 0, '', 6000, 800));
+  boardLayerPlayer.add(new Spawner(3, 1, '', 3000, 1000));
   //               bar|clients|type|frec|delay
-  //board.add(new Level(level1,winGame));
+  //boardLayerPlayer.add(new Level(level1,winGame));
+  GameManager.addBoard(4,boardLayerPlayer);
+  Game.setBoard(4,boardLayerPlayer);
 
-
-
-  Game.setBoard(0,new Background());
-  Game.setBoard(1,board);
  // Game.setBoard(0,new Background());
+
+ GameManager.setActivate(0,false);
+ GameManager.setActivate(1,false);
+ GameManager.setActivate(2,false);
+ GameManager.setActivate(3,true);
+ GameManager.setActivate(4,true);
 };
 
 var winGame = function() {
-  Game.setBoard(3,new TitleScreen("You win!",
-                                  "Press fire to play again",
+  /*Game.boards[3].setActivate(false);
+  Game.boards[4].setActivate(false);
+
+  var boardLayerWin = new GameBoard(true);
+  boardLayerWin.add(new TitleScreen("You win!",
+                                  "Press serve to play again",
                                   playGame));
+  Game.setBoard(2,boardLayerWin);*/
+  GameManager.setActivate(3,false);
+  GameManager.setActivate(4,false);
+  GameManager.setActivate(0,true);
 };
 
 var loseGame = function() {
-  Game.setBoard(3,new TitleScreen("You lose!",
-                                  "Press fire to play again",
+  /*Game.boards[3].setActivate(false);
+  Game.boards[4].setActivate(false);
+
+  var boardLayerLose = new GameBoard(true);
+  boardLayerLose.add(new TitleScreen("You lose!",
+                                  "Press serve to play again",
                                   playGame));
+  Game.setBoard(2,boardLayerLose);*/
+  GameManager.setActivate(3,false);
+  GameManager.setActivate(4,false);
+  GameManager.setActivate(1,true);
 };
 
 var Background = function() {
@@ -173,7 +210,10 @@ Client.prototype.step = function(dt)  {
 
 Client.prototype.hit = function() {
   this.board.remove(this);
+  GameManager.addServerClient();
+
   this.board.add(new Glass(this.x,this.y));
+  GameManager.addGlassesOnBar();
 };
 
 var Glass = function(x,y) {
@@ -188,8 +228,8 @@ Glass.prototype.step = function(dt)  {
   this.x += this.vx * dt;
   var collision = this.board.collide(this,OBJECT_BARTENDER);
   if(collision) {
-
     this.board.remove(this);
+    GameManager.subGlassesOnBar();
   }
 };
 
@@ -206,7 +246,7 @@ DeadZone.prototype.type = OBJECT_DEADZONE;
 DeadZone.prototype.step = function(dt)  {
   var collision = this.board.collide(this,this.type);
   if(collision) {
-    loseGame();
+    GameManager.youHaveLost();
   }
 };
 DeadZone.prototype.draw = function(ctx) {
@@ -224,6 +264,7 @@ var Spawner = function(bar, numClient, tipo, frec, delay){
 	this.t = 0;
 	this.currNumClient = 0;
 	this.firstDelayClient = false;
+  GameManager.addTotalClient(this.numClient);
 	switch (this.bar) {
     case 0:
         this.x = enemies.client_0.x;
@@ -266,9 +307,48 @@ Spawner.prototype.step = function(dt)  {
 Spawner.prototype.draw = function(ctx) {
 };
 
+var GameManager = new function(){
+  this.servedClient = 0;
+  this.totalClient = 0;
+  this.allClientServed = false;
+  this.glassesOnBar = 0;
+  this.board = [];
 
+  this.addTotalClient = function(numClient){
+    this.totalClient += numClient;
+  };
+  this.addServerClient = function(){
+    if(++this.servedClient == this.totalClient)
+      this.allClientServed = true;
+  };
+  this.addGlassesOnBar = function(){
+    this.glassesOnBar++;
+  };
+  this.subGlassesOnBar = function(){
+    if(--this.glassesOnBar == 0 && this.allClientServed){
+      winGame();
+      console.log("win");
+    }
+  };
+  this.youHaveLost = function(){
+    loseGame();
+  }
+  this.addBoard = function(layer,board){
+    this.board[layer] = board;
+  }
+  this.setActivate = function(layer, activate){
+    this.board[layer].setActivate(activate);
+    Game.setBoard(layer,this.board[layer]);
+  }
+  this.reset = function(){
+    this.servedClient = 0;
+    this.totalClient = 0;
+    this.allClientServed = false;
+    this.glassesOnBar = 0;
+  }
+};
 window.addEventListener("load", function() {
-  Game.initialize("game",sprites,playGame);
+  Game.initialize("game",sprites,startGame);
 });
 
 
