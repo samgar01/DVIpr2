@@ -46,7 +46,7 @@ var Game = new function() {
     this.loop();
 
     if(this.mobile) {
-      this.setBoard(4,new TouchControls());
+      this.setBoard(5,new TouchControls());
     }
 
     SpriteSheet.load(sprite_data,callback);
@@ -54,7 +54,7 @@ var Game = new function() {
 
 
   // Handle Input
-  var KEY_CODES = { 37:'left', 39:'right', 32 :'fire' };
+  var KEY_CODES = { 38:'up', 40:'down', 32 :'serve' };
   this.keys = {};
 
   this.setupInput = function() {
@@ -94,6 +94,7 @@ var Game = new function() {
 
   // Change an active game board
   this.setBoard = function(num,board) { boards[num] = board; };
+
 
 
   this.setupMobile = function() {
@@ -165,8 +166,8 @@ var SpriteSheet = new function() {
 var TitleScreen = function TitleScreen(title,subtitle,callback) {
   var up = false;
   this.step = function(dt) {
-    if(!Game.keys['fire']) up = true;
-    if(up && Game.keys['fire'] && callback) callback();
+    if(!Game.keys['serve']) up = true;
+    if(up && Game.keys['serve'] && callback) callback();
   };
 
   this.draw = function(ctx) {
@@ -189,13 +190,15 @@ var TitleScreen = function TitleScreen(title,subtitle,callback) {
 };
 
 
-var GameBoard = function() {
+var GameBoard = function(activate) {
   var board = this;
-
+  this.activate = activate;
   // The current list of objects
   this.objects = [];
   this.cnt = {};
-
+  this.setActivate = function(activate) {
+    this.activate = activate;
+  }
   // Add a new object to the object list
   this.add = function(obj) {
     obj.board=this;
@@ -249,14 +252,18 @@ var GameBoard = function() {
   // Call step on all objects and them delete
   // any object that have been marked for removal
   this.step = function(dt) {
-    this.resetRemoved();
-    this.iterate('step',dt);
-    this.finalizeRemoved();
+    if(this.activate){
+      this.resetRemoved();
+      this.iterate('step',dt);
+      this.finalizeRemoved();
+    }
   };
 
   // Draw all the objects
   this.draw= function(ctx) {
-    this.iterate('draw',ctx);
+    if(this.activate){
+     this.iterate('draw',ctx);
+    }
   };
 
   // Check for a collision between the
@@ -335,7 +342,7 @@ Level.prototype.step = function(dt) {
           override = curShip[4];
 
       // Add a new enemy with the blueprint and override
-      this.board.add(new Enemy(enemy,override));
+      this.board.add(new Client(enemy,override));
 
       // Increment the start time by the gap
       curShip[0] += curShip[2];
@@ -386,9 +393,9 @@ var TouchControls = function() {
     ctx.save();
 
     var yLoc = Game.height - unitWidth;
-    this.drawSquare(ctx,gutterWidth,yLoc,"\u25C0", Game.keys['left']);
-    this.drawSquare(ctx,unitWidth + gutterWidth,yLoc,"\u25B6", Game.keys['right']);
-    this.drawSquare(ctx,4*unitWidth,yLoc,"A",Game.keys['fire']);
+    this.drawSquare(ctx,gutterWidth,yLoc,"\u02C4", Game.keys['up']);
+    this.drawSquare(ctx,unitWidth + gutterWidth,yLoc,"\u02C5", Game.keys['down']);
+    this.drawSquare(ctx,4*unitWidth,yLoc,"🍺",Game.keys['serve']);
 
     ctx.restore();
   };
@@ -399,16 +406,16 @@ var TouchControls = function() {
     var touch, x;
 
     e.preventDefault();
-    Game.keys['left'] = false;
-    Game.keys['right'] = false;
+    Game.keys['up'] = false;
+    Game.keys['down'] = false;
     for(var i=0;i<e.targetTouches.length;i++) {
       touch = e.targetTouches[i];
       x = touch.pageX / Game.canvasMultiplier - Game.canvas.offsetLeft;
       if(x < unitWidth) {
-        Game.keys['left'] = true;
+        Game.keys['up'] = true;
       }
       if(x > unitWidth && x < 2*unitWidth) {
-        Game.keys['right'] = true;
+        Game.keys['down'] = true;
       }
     }
 
@@ -417,7 +424,7 @@ var TouchControls = function() {
         touch = e.changedTouches[i];
         x = touch.pageX / Game.canvasMultiplier - Game.canvas.offsetLeft;
         if(x > 4 * unitWidth) {
-          Game.keys['fire'] = (e.type == 'touchstart');
+          Game.keys['serve'] = (e.type == 'touchstart');
         }
       }
     }
