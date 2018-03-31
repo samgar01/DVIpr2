@@ -1,24 +1,26 @@
 var sprites = {
  bartender: { sx: 511, sy: 0, w: 57, h: 66, frames: 1 },
- client: { sx: 511, sy: 66, w: 32, h: 32, frames: 1 },
- beer_full: { sx: 511, sy: 98, w: 23, h: 32, frames: 1 },
- beer_empty: { sx: 511, sy: 130, w: 23, h: 32, frames: 1 },
+ client: { sx: 511, sy: 66, w: 34, h: 32, frames: 1 },
+ beer_full: { sx: 511, sy: 99, w: 23, h: 32, frames: 1 },
+ beer_empty: { sx: 511, sy: 131, w: 23, h: 32, frames: 1 },
  background: { sx: 0, sy: 480, w: 511, h: 480, frames: 1 },
  foreground: { sx: 0, sy: 0, w: 511, h: 480, frames: 1 }
 };
 
 var enemies = {
-  client_0:   { x: 125,   y: 80, sprite: 'client'},
-  client_1:   { x: 95,   y: 178, sprite: 'client'},
-  client_2:   { x: 62,   y: 272, sprite: 'client'},
-  client_3:   { x: 30,   y: 369, sprite: 'client'}
+  client_0:   { x: 125,   y: 80},
+  client_1:   { x: 95,   y: 176},
+  client_2:   { x: 62,   y: 272},
+  client_3:   { x: 30,   y: 368}
 };
 
 var OBJECT_BARTENDER = 1,
     OBJECT_BEER_FULL = 2,
     OBJECT_CLIENT = 4,
     OBJECT_BEER_EMPTY = 8,
-    OBJECT_DEADZONE = 16;
+    OBJECT_DEADZONE = 16,
+    NUM_VELOCIDADES = 3,
+    VELOCIDAD_BEER_FULL = -100;
 
 var startGame = function() {
   var ua = navigator.userAgent.toLowerCase();
@@ -83,10 +85,10 @@ var playGame = function() {
   boardLayerPlayer.add(new DeadZone(383,177,OBJECT_BEER_EMPTY));
   boardLayerPlayer.add(new DeadZone(416,274,OBJECT_BEER_EMPTY));
   boardLayerPlayer.add(new DeadZone(447,369,OBJECT_BEER_EMPTY));
-  boardLayerPlayer.add(new Spawner(0, 0, '', 1000, 5000));
-  boardLayerPlayer.add(new Spawner(1, 1, '', 3000, 1500));
-  boardLayerPlayer.add(new Spawner(2, 0, '', 6000, 800));
-  boardLayerPlayer.add(new Spawner(3, 1, '', 3000, 1000));
+  boardLayerPlayer.add(new Spawner(0, 1, [25,50,60], 'client', 1000, 5000));
+  boardLayerPlayer.add(new Spawner(1, 1, [25,30,35], 'client', 3000, 1500));
+  boardLayerPlayer.add(new Spawner(2, 1, [25,05,10], 'client', 6000, 800));
+  boardLayerPlayer.add(new Spawner(3, 1, [25,90,35], 'client', 3000, 1000));
   //               bar|clients|type|frec|delay
   //boardLayerPlayer.add(new Level(level1,winGame));
   GameManager.addBoard(4,boardLayerPlayer);
@@ -170,7 +172,7 @@ var Player = function() {
     }
     this.serve-=dt;
     if (Game.keys['serve'] && this.serve < 0) {
-      this.board.add(new Beer(this.x,this.y));
+      this.board.add(new Beer(this.x,this.y,VELOCIDAD_BEER_FULL));
       this.serve = this.serveTime;
     }
   }
@@ -178,8 +180,8 @@ var Player = function() {
 Player.prototype = new Sprite();
 Player.prototype.type = OBJECT_BARTENDER;
 
-var Beer = function(x,y) {
-  this.setup('beer_full', {vx: -100});
+var Beer = function(x,y,velocidad) {
+  this.setup('beer_full', {vx: velocidad});
   this.x = x-this.w;
   this.y = y;
 };
@@ -196,8 +198,8 @@ Beer.prototype.step = function(dt)  {
 };
 
 
-var Client = function(x,y) {
-  this.setup('client', {vx: 25});
+var Client = function(x,y,tipo,velocidad) {
+  this.setup(tipo, {vx: velocidad});
   this.x = x;
   this.y = y;
 };
@@ -250,14 +252,15 @@ DeadZone.prototype.step = function(dt)  {
   }
 };
 DeadZone.prototype.draw = function(ctx) {
-  ctx.strokeRect(this.x, this.y, this.w, this.h);
+  //ctx.strokeRect(this.x, this.y, this.w, this.h);
 };
 
-var Spawner = function(bar, numClient, tipo, frec, delay){
+var Spawner = function(bar, numClient, vxClient, tipo, frec, delay){
 	this.w=0;
   this.h=0;
 	this.bar = bar;
 	this.numClient = numClient;
+  this.vxClient = vxClient;
 	this.tipo = tipo;
 	this.frec = frec;
 	this.delay = delay;
@@ -283,22 +286,27 @@ var Spawner = function(bar, numClient, tipo, frec, delay){
         this.y = enemies.client_3.y;
         break;
 	}
+
+  this.randomNumber = function(max) {
+    return Math.floor(Math.random() * ((max-1) - 0)) + 0;
+  }
+
 };
 Spawner.prototype = new Sprite();
 Spawner.prototype.step = function(dt)  {
 	if(this.numClient > this.currNumClient){
 	  if (this.t == 0){
-	  	this.board.add(new Client(this.x,this.y));
+	  	this.board.add(new Client(this.x,this.y,this.tipo,this.vxClient[this.randomNumber(NUM_VELOCIDADES)]));
 	  	this.currNumClient++;
 	  }
 	  this.t += dt * 1000;
 	  if(this.t >= this.delay && !this.firstDelayClient){
-	  	this.board.add(new Client(this.x,this.y));
+	  	this.board.add(new Client(this.x,this.y,this.tipo,this.vxClient[this.randomNumber(NUM_VELOCIDADES)]));
 	  	this.firstDelayClient = true;
 	  	this.currNumClient++;
 	  }
 	  if(this.firstDelayClient && (this.t-(this.delay+(this.frec*(this.currNumClient-2)))) > this.frec){
-	  	this.board.add(new Client(this.x,this.y));
+	  	this.board.add(new Client(this.x,this.y,this.tipo,this.vxClient[this.randomNumber(NUM_VELOCIDADES)]));
 	  	this.currNumClient++;
 	  }
 	}
