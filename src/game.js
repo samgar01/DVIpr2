@@ -19,7 +19,7 @@ var OBJECT_BARTENDER = 1,
     OBJECT_CLIENT = 4,
     OBJECT_BEER_EMPTY = 8,
     OBJECT_DEADZONE = 16,
-    NUM_VELOCIDADES = 3,
+    NUM_VELOCIDADES = 1,
     VELOCIDAD_BEER_FULL = -100;
 
 var startGame = function() {
@@ -85,10 +85,13 @@ var playGame = function() {
   boardLayerPlayer.add(new DeadZone(383,177,OBJECT_BEER_EMPTY));
   boardLayerPlayer.add(new DeadZone(416,274,OBJECT_BEER_EMPTY));
   boardLayerPlayer.add(new DeadZone(447,369,OBJECT_BEER_EMPTY));
-  boardLayerPlayer.add(new Spawner(0, 1, [25,50,60], 'client', 1000, 5000));
-  boardLayerPlayer.add(new Spawner(1, 1, [25,30,35], 'client', 3000, 1500));
-  boardLayerPlayer.add(new Spawner(2, 1, [25,05,10], 'client', 6000, 800));
-  boardLayerPlayer.add(new Spawner(3, 1, [25,90,35], 'client', 3000, 1000));
+  boardLayerPlayer.add(new Spawner(0, 2, [25], 'client', 3000, 6000));
+  boardLayerPlayer.add(new Spawner(1, 3, [25], 'client', 10000, 10000));
+  boardLayerPlayer.add(new Spawner(2, 3, [25], 'client', 7000, 6000));
+  boardLayerPlayer.add(new Spawner(3, 4, [25], 'client', 8000, 3000));
+
+
+
   //               bar|clients|type|frec|delay
   //boardLayerPlayer.add(new Level(level1,winGame));
   GameManager.addBoard(4,boardLayerPlayer);
