@@ -4,7 +4,11 @@ var sprites = {
  beer_full: { sx: 511, sy: 99, w: 23, h: 32, frames: 1 },
  beer_empty: { sx: 511, sy: 131, w: 23, h: 32, frames: 1 },
  background: { sx: 0, sy: 480, w: 511, h: 480, frames: 1 },
- foreground: { sx: 0, sy: 0, w: 511, h: 480, frames: 1 }
+ foreground: { sx: 0, sy: 0, w: 511, h: 480, frames: 1 },
+ three_lives: { sx: 429, sy: 171, w: 131, h: 35, frames: 1 },
+ two_lives: { sx: 472, sy: 207, w: 85, h: 34, frames: 1 },
+ one_lives: { sx: 515, sy: 242, w: 44, h: 34, frames: 1 },
+ whitout_lives: { sx: 516, sy: 285, w: 0, h: 0, frames: 1 }
 };
 
 var enemies = {
@@ -89,6 +93,7 @@ var playGame = function() {
   boardLayerPlayer.add(new Spawner(1, 3, [25], 'client', 10000, 10000));
   boardLayerPlayer.add(new Spawner(2, 3, [25], 'client', 7000, 6000));
   boardLayerPlayer.add(new Spawner(3, 4, [25], 'client', 8000, 3000));
+  boardLayerPlayer.add(new Lives());
 
 
 
@@ -193,9 +198,9 @@ Beer.prototype.type = OBJECT_BEER_FULL;
 
 Beer.prototype.step = function(dt)  {
   this.x += this.vx * dt;
-  var collision = this.board.collide(this,OBJECT_CLIENT);
-  if(collision) {
-  	collision.hit();
+  var collisionClient = this.board.collide(this,OBJECT_CLIENT);
+  if(collisionClient) {
+  	collisionClient.hit();
     this.board.remove(this);
   }
 };
@@ -251,7 +256,8 @@ DeadZone.prototype.type = OBJECT_DEADZONE;
 DeadZone.prototype.step = function(dt)  {
   var collision = this.board.collide(this,this.type);
   if(collision) {
-    GameManager.youHaveLost();
+    GameManager.subLives();
+    this.board.remove(collision);
   }
 };
 DeadZone.prototype.draw = function(ctx) {
@@ -318,13 +324,45 @@ Spawner.prototype.step = function(dt)  {
 Spawner.prototype.draw = function(ctx) {
 };
 
+var Lives = function(){
+  this.setup('three_lives',{});
+  this.currentLives = GameManager.getLives();
+  this.x= 350;
+  this.y= 40;
+  
+  
+};
+
+Lives.prototype = new Sprite();
+Lives.prototype.step = function(dt)  {
+  if(this.currentLives != GameManager.getLives()){
+    this.currentLives = GameManager.getLives();
+    if(this.currentLives==2)
+      this.setup('two_lives',{});
+    if(this.currentLives==1)
+      this.setup('one_lives',{});
+    if(this.currentLives==0)
+      this.setup('whitout_lives',{});
+  }
+};
+
 var GameManager = new function(){
   this.servedClient = 0;
   this.totalClient = 0;
   this.allClientServed = false;
   this.glassesOnBar = 0;
   this.board = [];
+  this.currentLives = 3;
 
+  this.getLives = function(){
+    return this.currentLives;
+  };
+  this.subLives =function(){
+    this.currentLives--;
+    if(this.currentLives < 0){
+      loseGame();
+    }
+  };
   this.addTotalClient = function(numClient){
     this.totalClient += numClient;
   };
@@ -341,9 +379,9 @@ var GameManager = new function(){
       console.log("win");
     }
   };
-  this.youHaveLost = function(){
+  /*this.youHaveLost = function(){
     loseGame();
-  }
+  }*/
   this.addBoard = function(layer,board){
     this.board[layer] = board;
   }
@@ -356,6 +394,7 @@ var GameManager = new function(){
     this.totalClient = 0;
     this.allClientServed = false;
     this.glassesOnBar = 0;
+    this.currentLives = 3;
   }
 };
 window.addEventListener("load", function() {
