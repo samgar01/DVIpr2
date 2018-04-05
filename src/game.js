@@ -23,7 +23,7 @@ var OBJECT_BARTENDER = 1,
     OBJECT_CLIENT = 4,
     OBJECT_BEER_EMPTY = 8,
     OBJECT_DEADZONE = 16,
-    NUM_VELOCIDADES = 1,
+    NUM_VELOCIDADES = 3,
     VELOCIDAD_BEER_FULL = -100;
 
 var startGame = function() {
@@ -89,10 +89,10 @@ var playGame = function() {
   boardLayerPlayer.add(new DeadZone(383,177,OBJECT_BEER_EMPTY));
   boardLayerPlayer.add(new DeadZone(416,274,OBJECT_BEER_EMPTY));
   boardLayerPlayer.add(new DeadZone(447,369,OBJECT_BEER_EMPTY));
-  boardLayerPlayer.add(new Spawner(0, 2, [25], 'client', 3000, 6000));
-  boardLayerPlayer.add(new Spawner(1, 3, [25], 'client', 10000, 10000));
-  boardLayerPlayer.add(new Spawner(2, 3, [25], 'client', 7000, 6000));
-  boardLayerPlayer.add(new Spawner(3, 4, [25], 'client', 8000, 3000));
+  boardLayerPlayer.add(new Spawner(0, 2, [15,25,60], 'client', 3000, 6000));
+  boardLayerPlayer.add(new Spawner(1, 3, [15,25,60], 'client', 10000, 10000));
+  boardLayerPlayer.add(new Spawner(2, 3, [15,25,60], 'client', 7000, 6000));
+  boardLayerPlayer.add(new Spawner(3, 4, [15,25,60], 'client', 8000, 3000));
   boardLayerPlayer.add(new Lives());
 
 
