@@ -15,7 +15,7 @@ var sprites = {
  one_lives: { sx: 515, sy: 242, w: 44, h: 34, frames: 1 },
  whitout_lives: { sx: 516, sy: 285, w: 0, h: 0, frames: 1 }
 };
-/*enemies es una variable que guarda en que pixeles se tiene que pintar los clientes en las distintas barras */
+/*Enemies es una variable que guarda en que pixeles se tiene que pintar los clientes en las distintas barras */
 var enemies = {
   client_0:   { x: 125,   y: 80},
   client_1:   { x: 95,   y: 176},
@@ -30,7 +30,7 @@ var OBJECT_BARTENDER = 1,
     OBJECT_DEADZONE = 16,
     NUM_VELOCIDADES = 3,
     VELOCIDAD_BEER_FULL = -100;
-/*startGame es una función que se llama para iniciar el juego. 
+/*startGame es una función que se llama para iniciar el juego.
 En ella se crean todos los GameBoard menos el de Player y se añaden al GameManager.
 Todas los GameBoard menos la pantalla de Start no se activan, pues al comenzar el juego la única pantalla que se debe ver es la de Start.
 Se colocan todas las pantallas en distitas capas.*/
@@ -90,11 +90,11 @@ var playGame = function() {
   boardLayerPlayer.add(new DeadZone(383,177,OBJECT_BEER_EMPTY));
   boardLayerPlayer.add(new DeadZone(416,274,OBJECT_BEER_EMPTY));
   boardLayerPlayer.add(new DeadZone(447,369,OBJECT_BEER_EMPTY));
-  //bar|clients|type|frec|delay
+                                //bar|clients|speeds|type|frec|delay
   boardLayerPlayer.add(new Spawner(0, 2, [15,25,60], 'client', 3000, 6000));
   boardLayerPlayer.add(new Spawner(1, 3, [15,25,60], 'client', 10000, 10000));
   boardLayerPlayer.add(new Spawner(2, 3, [15,25,60], 'client', 7000, 6000));
-  boardLayerPlayer.add(new Spawner(3, 4, [15,25,60], 'client', 8000, 3000));
+  boardLayerPlayer.add(new Spawner(3, 4, [25,45,70], 'client', 8000, 3000));
   boardLayerPlayer.add(new Lives());
 
 
@@ -140,10 +140,10 @@ Background.prototype = new Sprite();
 
 /*Player es un objeto que hereda de Sprite y que representa al jugador, es decir, al camarero.
 Se pasa al setup 'bartender' para que pinte el sprite correspondiente y tres propiedades en el segundo parametro con formato
-JSON, el primero corresponde con la barra en la que se situa al camarero nada más comenzar el juego, la segunda representa 
+JSON, el primero corresponde con la barra en la que se situa al camarero nada más comenzar el juego, la segunda representa
 el tiempo que debe de pasar antes de que se pueda volver a mover al camarero después de que este se haya movido y la tercera
 representa el tiempo que tiene que pasar para que se pueda servir una cerveza después de que se haya servido una.
-Su función step escucha las tres teclas que se pueden usar en el juego para en el momento en que se pulsa una realizar la 
+Su función step escucha las tres teclas que se pueden usar en el juego para en el momento en que se pulsa una realizar la
 acción correspondiente. */
 var Player = function() {
   this.setup('bartender', { currPos: 1, reloadTime: 0.10, serveTime: 0.25 });
@@ -182,11 +182,12 @@ var Player = function() {
 };
 Player.prototype = new Sprite();
 Player.prototype.type = OBJECT_BARTENDER;
+
 /*Beer es un objeto que hereda de Sprite y que representa la cerveza llena.
-Se pasa 'beer_full' al setup para que pinte el sprite correspondiente y en el segundo parametro se le pasa una propiedad en 
+Se pasa 'beer_full' al setup para que pinte el sprite correspondiente y en el segundo parametro se le pasa una propiedad en
 formato JSON en la que se define la velocidad a la que se va a mover la cerveza.
 Su función step se encarga de mover la cerveza por cada dt tiempo y esta pendiente de cuando colisiona con un cliente. Cuando
-colisiona con un cliente se lo comunica al cliente y se borra de la pantalla  */
+colisiona con un cliente se lo comunica al cliente y se borra de la pantalla.  */
 var Beer = function(x,y,velocidad) {
   this.setup('beer_full', {vx: velocidad});
   this.x = x-this.w;
@@ -204,7 +205,12 @@ Beer.prototype.step = function(dt)  {
   }
 };
 
-
+/*Client es un objeto que hereda de Sprite y que representa cada cliente que entra al bar.
+A su función setup se le pasa el tipo de sprite de cliente que queremos que se pinte y la velocidad a la que se va a mover (que puede variar).
+Esta se pasa como un JSON que se establecerá como una propiedad en engine.js.
+Su función step se encarga únicamente de desplazar al cliente hacia el final de la barra en sentido creciente en X.
+La función hit es a la que se llama en la clase Beer cuando se impacta con una cerveza, para hacerlo desaparecer y seguidamente generar
+una cerveza vacía en sentido contrario.  */
 var Client = function(x,y,tipo,velocidad) {
   this.setup(tipo, {vx: velocidad});
   this.x = x;
@@ -328,8 +334,8 @@ var Lives = function(){
   this.currentLives = GameManager.getLives();
   this.x= 350;
   this.y= 40;
-  
-  
+
+
 };
 
 Lives.prototype = new Sprite();
@@ -378,9 +384,6 @@ var GameManager = new function(){
       console.log("win");
     }
   };
-  /*this.youHaveLost = function(){
-    loseGame();
-  }*/
   this.addBoard = function(layer,board){
     this.board[layer] = board;
   }
