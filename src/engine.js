@@ -54,7 +54,7 @@ var Game = new function() {
 
 
   // Handle Input
-  var KEY_CODES = { 38:'up', 40:'down', 32 :'serve' };
+  var KEY_CODES = { 38:'up', 40:'down', 32 :'serve' };//nombres de acciones cambiados
   this.keys = {};
 
   this.setupInput = function() {
@@ -395,7 +395,7 @@ var TouchControls = function() {
     var yLoc = Game.height - unitWidth;
     this.drawSquare(ctx,gutterWidth,yLoc,"\u02C4", Game.keys['up']);
     this.drawSquare(ctx,unitWidth + gutterWidth,yLoc,"\u02C5", Game.keys['down']);
-    this.drawSquare(ctx,4*unitWidth,yLoc,"🍺",Game.keys['serve']);
+    this.drawSquare(ctx,4*unitWidth,yLoc,"🍺",Game.keys['serve']);//editado respecto al original, con un icono de cerveza llena para "disparar"
 
     ctx.restore();
   };

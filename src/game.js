@@ -56,7 +56,7 @@ var startGame = function() {
 
   var boardLayerStart = new GameBoard(true);
   boardLayerStart.add(new TitleScreen("TAPPER-SD",
-                                  "Please play (press space bar)",
+                                  "Press space bar or 🍺 to PLAY",
                                   playGame));
   Game.setBoard(2,boardLayerStart);
   //Se añaden todos los GameBoard al GameManager
@@ -231,6 +231,9 @@ Client.prototype.hit = function() {
   GameManager.addGlassesOnBar();
 };
 
+/*Glass es un objeto que hereda de Sprite y que representa la cerveza vacía que se genera al colisionar una llena con un cliente.
+a su función setup se le pasa el sprite 'beer_empty' y una velocidad en X constante.
+Su función step se encarga de hacerla avanzar hacia la derecha y en caso de colisionar con el camarero, hacerla desaparecer. */
 var Glass = function(x,y) {
   this.setup('beer_empty', {vx: 40});
   this.x = x+this.w;
@@ -248,6 +251,14 @@ Glass.prototype.step = function(dt)  {
   }
 };
 
+/*DeadZone es un objeto que hereda de Sprite y representa zonas donde se eliminarán ciertos objetos de un tipo determinado a su colisión.
+Tiene parametrizado su posición en el canvas y el tipo (type) de objeto que, de colisionar, se eliminará.
+Su función step evalúa si, en el caso de colisionar, ha sido con un objeto de tipo el "type" especificado al construirse, entonces lo elimina
+y restar una vida a la partida (ya que siempre que se produce esa colisión satisfactoria significa una pérdida de una vida: jarra llena
+avanza hasta el comienzo de la barra, cliente llega hasta el final de la barra o una jarra vacía llega al final de la barra sin que el camarero
+la recoja.
+Su función draw fue implementada expresamente para debuguear pintando estas zonas de colisión. Actualmente no funciona a drede, por apariecia
+y jugabilidad.*/
 var DeadZone = function(x,y,type) {
   this.x=x;
   this.y=y;
@@ -269,6 +280,12 @@ DeadZone.prototype.draw = function(ctx) {
   //ctx.strokeRect(this.x, this.y, this.w, this.h);
 };
 
+/*Spawner es un objeto que hereda de Sprite y representa a un creador de clientes en el comienzo de las barras del bar.
+Tiene como parámetros bar, cuál de las 4 barras que hay en el canvas; numClient, número de clientes que va a generar en total;
+vxClient, array de velocidades para los clientes que generará (se escogerá de manera aleatoria); tipo, sprite de cliente a generar;
+frec, frecuencia con la que se generan los clientes y delay, espera inicial entre el primer cliente generado y los demás.
+Su función step se encarga de ir generando los clientes con las velocidades aleatoriamente escogidas en cada generación.
+Tiene una función draw vacía a posta para que no dibuje nada, pero a la vez se sobreescriba a la de su prototype, la cual si intenta pintar algo. */
 var Spawner = function(bar, numClient, vxClient, tipo, frec, delay){
 	this.w=0;
   this.h=0;
@@ -329,13 +346,14 @@ Spawner.prototype.step = function(dt)  {
 Spawner.prototype.draw = function(ctx) {
 };
 
+/*Lives es un objeto que hereda de Sprite y representa las vidas que tiene el jugador en la partida.
+En setup se le pasa el sprite 'three_lives' que es el inicial que posee.
+En su función step se mira el número de vidas que tiene el jugador, y en consecuencia se pinta el sprite correspondiente. */
 var Lives = function(){
   this.setup('three_lives',{});
   this.currentLives = GameManager.getLives();
   this.x= 350;
   this.y= 40;
-
-
 };
 
 Lives.prototype = new Sprite();
@@ -351,6 +369,7 @@ Lives.prototype.step = function(dt)  {
   }
 };
 
+/*En GameManager se lleva el control de clientes servidos, clientes totales, jarras vacías en el bar y el número de vidas actuales*/
 var GameManager = new function(){
   this.servedClient = 0;
   this.totalClient = 0;
