@@ -1,30 +1,42 @@
+/*La variable sprites contiene información de los sprites en formato JSON
+sx y sy indica en que pixel de la imagen comienza el sprite y w y h son los píxeles que ocupa el sprite de ancho y
+de alto respectivamente, frames indica cuantos frames tiene el sprite.
+*/
+
 var sprites = {
  bartender: { sx: 511, sy: 0, w: 57, h: 66, frames: 1 },
  client: { sx: 511, sy: 66, w: 34, h: 32, frames: 1 },
  beer_full: { sx: 511, sy: 99, w: 23, h: 32, frames: 1 },
  beer_empty: { sx: 511, sy: 131, w: 23, h: 32, frames: 1 },
  background: { sx: 0, sy: 480, w: 511, h: 480, frames: 1 },
- foreground: { sx: 0, sy: 0, w: 511, h: 480, frames: 1 }
+ foreground: { sx: 0, sy: 0, w: 511, h: 480, frames: 1 },
+ three_lives: { sx: 429, sy: 171, w: 131, h: 35, frames: 1 },
+ two_lives: { sx: 472, sy: 207, w: 85, h: 34, frames: 1 },
+ one_lives: { sx: 515, sy: 242, w: 44, h: 34, frames: 1 },
+ whitout_lives: { sx: 516, sy: 285, w: 0, h: 0, frames: 1 }
 };
-
+/*Enemies es una variable que guarda en que pixeles se tiene que pintar los clientes en las distintas barras */
 var enemies = {
   client_0:   { x: 125,   y: 80},
   client_1:   { x: 95,   y: 176},
   client_2:   { x: 62,   y: 272},
   client_3:   { x: 30,   y: 368}
 };
-
+/*Son las variables de los distintos tipos que tienen los objetos*/
 var OBJECT_BARTENDER = 1,
     OBJECT_BEER_FULL = 2,
     OBJECT_CLIENT = 4,
     OBJECT_BEER_EMPTY = 8,
     OBJECT_DEADZONE = 16,
-    NUM_VELOCIDADES = 1,
+    NUM_VELOCIDADES = 3,
     VELOCIDAD_BEER_FULL = -100;
-
+/*startGame es una función que se llama para iniciar el juego.
+En ella se crean todos los GameBoard menos el de Player y se añaden al GameManager.
+Todas los GameBoard menos la pantalla de Start no se activan, pues al comenzar el juego la única pantalla que se debe ver es la de Start.
+Se colocan todas las pantallas en distitas capas.*/
 var startGame = function() {
   var ua = navigator.userAgent.toLowerCase();
-
+  //El false indica que el board no esta activado
   var boardLayerBackground = new GameBoard(false);
   boardLayerBackground.add(new Background());
 
@@ -44,35 +56,28 @@ var startGame = function() {
 
   var boardLayerStart = new GameBoard(true);
   boardLayerStart.add(new TitleScreen("TAPPER-SD",
-                                  "Please play (press space bar)",
+                                  "Press space bar or 🍺 to PLAY",
                                   playGame));
   Game.setBoard(2,boardLayerStart);
-
+  //Se añaden todos los GameBoard al GameManager
   GameManager.addBoard(0,boardLayerWin);
   GameManager.addBoard(1,boardLayerLose);
   GameManager.addBoard(2,boardLayerStart);
   GameManager.addBoard(3,boardLayerBackground);
 };
 
-var level1 = [
- // Start,   End, Gap,  Type,   Override
-  [ 0,      4000,  500, 'client_0' ],
-  [ 6000,   13000, 800, 'client_0' ],
-  [ 10000,  16000, 400, 'client_0' ],
-  [ 17800,  20000, 500, 'client_0'],
-  [ 18200,  20000, 500, 'client_0'],
-  [ 18200,  20000, 500, 'client_0'],
-  [ 22000,  25000, 400, 'client_0'],
-  [ 22000,  25000, 400, 'client_0']
-];
-
-
+/*
+playGame es una función la cual se llama cuando comenzamos a jugar una partida.
+Creamos el GameBoard de Player con todos sus elementos, activada y lo añadimos al GameManager.
+Desactivamos todas las pantallas de mensaje(boardLayerStart, boardLayerWin,boardLayerLose) y activamos tanto la de fondo(boardLayerBackground)
+como la del Player.
+*/
 
 var playGame = function() {
+	//Reinicializamos de nuevo todas la variables de control del juego de GameManager
   GameManager.reset();
   var boardLayerPlayer = new GameBoard(true);
   boardLayerPlayer.add(new Player());
-  //boardLayerPlayer.add(new Client(125,80));
   boardLayerPlayer.add(new DeadZone(124,64,OBJECT_BEER_FULL));
   boardLayerPlayer.add(new DeadZone(95,162,OBJECT_BEER_FULL));
   boardLayerPlayer.add(new DeadZone(62,256,OBJECT_BEER_FULL));
@@ -85,55 +90,43 @@ var playGame = function() {
   boardLayerPlayer.add(new DeadZone(383,177,OBJECT_BEER_EMPTY));
   boardLayerPlayer.add(new DeadZone(416,274,OBJECT_BEER_EMPTY));
   boardLayerPlayer.add(new DeadZone(447,369,OBJECT_BEER_EMPTY));
-  boardLayerPlayer.add(new Spawner(0, 2, [25], 'client', 3000, 6000));
-  boardLayerPlayer.add(new Spawner(1, 3, [25], 'client', 10000, 10000));
-  boardLayerPlayer.add(new Spawner(2, 3, [25], 'client', 7000, 6000));
-  boardLayerPlayer.add(new Spawner(3, 4, [25], 'client', 8000, 3000));
+                                //bar|clients|speeds|type|frec|delay
+  boardLayerPlayer.add(new Spawner(0, 2, [15,25,60], 'client', 3000, 6000));
+  boardLayerPlayer.add(new Spawner(1, 3, [15,25,60], 'client', 10000, 10000));
+  boardLayerPlayer.add(new Spawner(2, 3, [15,25,60], 'client', 7000, 6000));
+  boardLayerPlayer.add(new Spawner(3, 4, [25,45,70], 'client', 8000, 3000));
+  boardLayerPlayer.add(new Lives());
 
 
-
-  //               bar|clients|type|frec|delay
-  //boardLayerPlayer.add(new Level(level1,winGame));
   GameManager.addBoard(4,boardLayerPlayer);
   Game.setBoard(4,boardLayerPlayer);
 
- // Game.setBoard(0,new Background());
 
- GameManager.setActivate(0,false);
- GameManager.setActivate(1,false);
- GameManager.setActivate(2,false);
- GameManager.setActivate(3,true);
- GameManager.setActivate(4,true);
+	GameManager.setActivate(0,false);
+  GameManager.setActivate(1,false);
+  GameManager.setActivate(2,false);
+	GameManager.setActivate(3,true);
+	GameManager.setActivate(4,true);
 };
-
+/*winGame es una funcion que se llama cuando hemos acabado la partida y hemos ganado
+Desactiva las capas 3 y 4 en las cuales se situan las pantallas de fondo y de jugador respectivamente (boardLayerBackground y boardLayerPlayer)
+y activa la capa 0 en la cual esta situada la pantalla de victoria (boardLayerWin)*/
 var winGame = function() {
-  /*Game.boards[3].setActivate(false);
-  Game.boards[4].setActivate(false);
-
-  var boardLayerWin = new GameBoard(true);
-  boardLayerWin.add(new TitleScreen("You win!",
-                                  "Press serve to play again",
-                                  playGame));
-  Game.setBoard(2,boardLayerWin);*/
   GameManager.setActivate(3,false);
   GameManager.setActivate(4,false);
   GameManager.setActivate(0,true);
 };
-
+/*loseGame es una funcion que se llama cuando hemos acabado la partida y hemos perdido
+Desactiva las capas 3 y 4 en las cuales se situan las pantallas de fondo y de jugador respectivamente (boardLayerBackground y boardLayerPlayer)
+y activa la capa 1 en la cual esta situada la pantalla de derrota (boardLayerLose)*/
 var loseGame = function() {
-  /*Game.boards[3].setActivate(false);
-  Game.boards[4].setActivate(false);
-
-  var boardLayerLose = new GameBoard(true);
-  boardLayerLose.add(new TitleScreen("You lose!",
-                                  "Press serve to play again",
-                                  playGame));
-  Game.setBoard(2,boardLayerLose);*/
   GameManager.setActivate(3,false);
   GameManager.setActivate(4,false);
   GameManager.setActivate(1,true);
 };
-
+/*Background es un objeto que hereda de Sprite y que representa el fondo.
+Se pasa 'background' al setup para que pinte el sprite correspondiente.
+Su función step esta vacía pues tiene que hacer nada por cada paso, mas si no se pone da error. */
 var Background = function() {
 
   this.setup('background', {});
@@ -145,6 +138,13 @@ var Background = function() {
 
 Background.prototype = new Sprite();
 
+/*Player es un objeto que hereda de Sprite y que representa al jugador, es decir, al camarero.
+Se pasa al setup 'bartender' para que pinte el sprite correspondiente y tres propiedades en el segundo parametro con formato
+JSON, el primero corresponde con la barra en la que se situa al camarero nada más comenzar el juego, la segunda representa
+el tiempo que debe de pasar antes de que se pueda volver a mover al camarero después de que este se haya movido y la tercera
+representa el tiempo que tiene que pasar para que se pueda servir una cerveza después de que se haya servido una.
+Su función step escucha las tres teclas que se pueden usar en el juego para en el momento en que se pulsa una realizar la
+acción correspondiente. */
 var Player = function() {
   this.setup('bartender', { currPos: 1, reloadTime: 0.10, serveTime: 0.25 });
 
@@ -183,6 +183,11 @@ var Player = function() {
 Player.prototype = new Sprite();
 Player.prototype.type = OBJECT_BARTENDER;
 
+/*Beer es un objeto que hereda de Sprite y que representa la cerveza llena.
+Se pasa 'beer_full' al setup para que pinte el sprite correspondiente y en el segundo parametro se le pasa una propiedad en
+formato JSON en la que se define la velocidad a la que se va a mover la cerveza.
+Su función step se encarga de mover la cerveza por cada dt tiempo y esta pendiente de cuando colisiona con un cliente. Cuando
+colisiona con un cliente se lo comunica al cliente y se borra de la pantalla.  */
 var Beer = function(x,y,velocidad) {
   this.setup('beer_full', {vx: velocidad});
   this.x = x-this.w;
@@ -193,14 +198,19 @@ Beer.prototype.type = OBJECT_BEER_FULL;
 
 Beer.prototype.step = function(dt)  {
   this.x += this.vx * dt;
-  var collision = this.board.collide(this,OBJECT_CLIENT);
-  if(collision) {
-  	collision.hit();
+  var collisionClient = this.board.collide(this,OBJECT_CLIENT);
+  if(collisionClient) {
+  	collisionClient.hit();
     this.board.remove(this);
   }
 };
 
-
+/*Client es un objeto que hereda de Sprite y que representa cada cliente que entra al bar.
+A su función setup se le pasa el tipo de sprite de cliente que queremos que se pinte y la velocidad a la que se va a mover (que puede variar).
+Esta se pasa como un JSON que se establecerá como una propiedad en engine.js.
+Su función step se encarga únicamente de desplazar al cliente hacia el final de la barra en sentido creciente en X.
+La función hit es a la que se llama en la clase Beer cuando se impacta con una cerveza, para hacerlo desaparecer y seguidamente generar
+una cerveza vacía en sentido contrario.  */
 var Client = function(x,y,tipo,velocidad) {
   this.setup(tipo, {vx: velocidad});
   this.x = x;
@@ -221,6 +231,9 @@ Client.prototype.hit = function() {
   GameManager.addGlassesOnBar();
 };
 
+/*Glass es un objeto que hereda de Sprite y que representa la cerveza vacía que se genera al colisionar una llena con un cliente.
+a su función setup se le pasa el sprite 'beer_empty' y una velocidad en X constante.
+Su función step se encarga de hacerla avanzar hacia la derecha y en caso de colisionar con el camarero, hacerla desaparecer. */
 var Glass = function(x,y) {
   this.setup('beer_empty', {vx: 40});
   this.x = x+this.w;
@@ -238,6 +251,14 @@ Glass.prototype.step = function(dt)  {
   }
 };
 
+/*DeadZone es un objeto que hereda de Sprite y representa zonas donde se eliminarán ciertos objetos de un tipo determinado a su colisión.
+Tiene parametrizado su posición en el canvas y el tipo (type) de objeto que, de colisionar, se eliminará.
+Su función step evalúa si, en el caso de colisionar, ha sido con un objeto de tipo el "type" especificado al construirse, entonces lo elimina
+y restar una vida a la partida (ya que siempre que se produce esa colisión satisfactoria significa una pérdida de una vida: jarra llena
+avanza hasta el comienzo de la barra, cliente llega hasta el final de la barra o una jarra vacía llega al final de la barra sin que el camarero
+la recoja.
+Su función draw fue implementada expresamente para debuguear pintando estas zonas de colisión. Actualmente no funciona a drede, por apariecia
+y jugabilidad.*/
 var DeadZone = function(x,y,type) {
   this.x=x;
   this.y=y;
@@ -251,13 +272,20 @@ DeadZone.prototype.type = OBJECT_DEADZONE;
 DeadZone.prototype.step = function(dt)  {
   var collision = this.board.collide(this,this.type);
   if(collision) {
-    GameManager.youHaveLost();
+    GameManager.subLives();
+    this.board.remove(collision);
   }
 };
 DeadZone.prototype.draw = function(ctx) {
   //ctx.strokeRect(this.x, this.y, this.w, this.h);
 };
 
+/*Spawner es un objeto que hereda de Sprite y representa a un creador de clientes en el comienzo de las barras del bar.
+Tiene como parámetros bar, cuál de las 4 barras que hay en el canvas; numClient, número de clientes que va a generar en total;
+vxClient, array de velocidades para los clientes que generará (se escogerá de manera aleatoria); tipo, sprite de cliente a generar;
+frec, frecuencia con la que se generan los clientes y delay, espera inicial entre el primer cliente generado y los demás.
+Su función step se encarga de ir generando los clientes con las velocidades aleatoriamente escogidas en cada generación.
+Tiene una función draw vacía a posta para que no dibuje nada, pero a la vez se sobreescriba a la de su prototype, la cual si intenta pintar algo. */
 var Spawner = function(bar, numClient, vxClient, tipo, frec, delay){
 	this.w=0;
   this.h=0;
@@ -318,13 +346,47 @@ Spawner.prototype.step = function(dt)  {
 Spawner.prototype.draw = function(ctx) {
 };
 
+/*Lives es un objeto que hereda de Sprite y representa las vidas que tiene el jugador en la partida.
+En setup se le pasa el sprite 'three_lives' que es el inicial que posee.
+En su función step se mira el número de vidas que tiene el jugador, y en consecuencia se pinta el sprite correspondiente. */
+var Lives = function(){
+  this.setup('three_lives',{});
+  this.currentLives = GameManager.getLives();
+  this.x= 350;
+  this.y= 40;
+};
+
+Lives.prototype = new Sprite();
+Lives.prototype.step = function(dt)  {
+  if(this.currentLives != GameManager.getLives()){
+    this.currentLives = GameManager.getLives();
+    if(this.currentLives==2)
+      this.setup('two_lives',{});
+    if(this.currentLives==1)
+      this.setup('one_lives',{});
+    if(this.currentLives==0)
+      this.setup('whitout_lives',{});
+  }
+};
+
+/*En GameManager se lleva el control de clientes servidos, clientes totales, jarras vacías en el bar y el número de vidas actuales*/
 var GameManager = new function(){
   this.servedClient = 0;
   this.totalClient = 0;
   this.allClientServed = false;
   this.glassesOnBar = 0;
   this.board = [];
+  this.currentLives = 3;
 
+  this.getLives = function(){
+    return this.currentLives;
+  };
+  this.subLives =function(){
+    this.currentLives--;
+    if(this.currentLives < 0){
+      loseGame();
+    }
+  };
   this.addTotalClient = function(numClient){
     this.totalClient += numClient;
   };
@@ -341,9 +403,6 @@ var GameManager = new function(){
       console.log("win");
     }
   };
-  this.youHaveLost = function(){
-    loseGame();
-  }
   this.addBoard = function(layer,board){
     this.board[layer] = board;
   }
@@ -356,6 +415,7 @@ var GameManager = new function(){
     this.totalClient = 0;
     this.allClientServed = false;
     this.glassesOnBar = 0;
+    this.currentLives = 3;
   }
 };
 window.addEventListener("load", function() {
